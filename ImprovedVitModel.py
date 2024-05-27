@@ -122,8 +122,10 @@ class Attention(nn.Module):
         out = rearrange(out, 'b p h n d -> b p n (h d)').contiguous()
         return self.to_out(out)
 
-#transformer输入数据处理，对于任意输入为(B,C,H,W)进行切割为(B,(NH，NW)，(PH,PW），C)
 class Transformer(nn.Module):
+    """
+    Transformer input data processing involves slicing any input of shape (B, C, H, W) into (B, (NH, NW), (PH, PW), C), where B represents the batch size, C denotes the number of channels, H and W denote the height and width of the input respectively, NH and NW represent the number of horizontal and vertical patches, and PH and PW represent the patch height and patch width.
+    """
     def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout=0.):
         super().__init__()
         self.layers = nn.ModuleList([])
@@ -143,13 +145,13 @@ class BranchBlock(nn.Module):
     def __init__(self,inp,oup,residual=True):
         super().__init__()
         self.residual = residual
-        # 第一个分支 1x1卷积
+        # The first branch: 1x1 convolution.
         self.branch1 = nn.Sequential(
             nn.Conv2d(inp,inp//2, kernel_size=1),
             nn.BatchNorm2d(oup//2),
             nn.ReLU(inplace=True)
         )
-        # 第二个分支 1x1卷积+3x3卷积
+        # The second branch: 1x1 convolution followed by a 3x3 convolution.
         self.branch2 = nn.Sequential(
             nn.Conv2d(inp, inp//2, kernel_size=1),
             nn.BatchNorm2d(inp//2),

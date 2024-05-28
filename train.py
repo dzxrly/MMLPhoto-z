@@ -38,8 +38,8 @@ def normalized(arr):
     return (arr-mean)/std
 
 def read_MN():
-    #b=pd.read_csv('MN1.csv')
-    b=pd.read_csv('./extend.csv')
+    #b=pd.read_csv('MN.csv')
+    b=pd.read_csv('./EXTEND.csv')
 
     b['u-g']=b['dered_u']-b['dered_g']
     b['g-r']=b['dered_g']-b['dered_r']
@@ -57,7 +57,7 @@ def read_MN():
 
 def read_YAO():
     #b=pd.read_csv('YAONEW.csv')
-    b=pd.read_csv('unify.csv')
+    b=pd.read_csv('UNIFY.csv')
 
     b['u-g']=b['UMAG']-b['GMAG']
     b['g-r']=b['GMAG']-b['RMAG']
@@ -78,7 +78,7 @@ def read_YAO():
     return x1,x2,y,con_labels,extension
 
 def read_SKY(task):
-    skys=pd.read_csv('skysRIZ_new.csv')
+    skys=pd.read_csv('SKYSRIZ_NEW.csv')
     skys['u-v']=skys['UPSF']-skys['VPSF']
     skys['v-g']=skys['VPSF']-skys['GPSF']
     skys['g-r']=skys['GPSF']-skys['RPSF']

@@ -42,7 +42,7 @@
   4. Other training-related configurations such as weight coefficients, selection of loss functions (CRPS, cross-entropy, MSE), and specific CSV file reading can all be modified in train.py.
 
   <!-- TOC --><a name="quick-start-guide-of-the-structure-of-the-code"></a>
-  # Quick start guide of the structure of the code
+  # Quick start of the structure of the code
 
   1. model files:
 

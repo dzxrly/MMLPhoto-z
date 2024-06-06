@@ -72,9 +72,15 @@ You can run the code `python train.py --mode=WISE --task=ESTIMATION --modal=all`
 - EXTEND.csv (Dataset II in paper)
 - YAONEW.csv (Dataset IV in paper)
 - SKYSRIZ_NEW.csv (Dataset V in paper)
-- UNIFY.csv (Quasars $0 \leq z \leq 6$ in DR16Q)
+- UNIFY.csv (Quasars $0 \leq z \leq 6$ in DR16Q) Dataset VI
 
 <!-- TOC --><a name="image-cropped-details-and-preprocessing"></a>
 # Image cropped details and preprocessing
 
 In this paper, the images will be cropped into 64 X 64 images according to the Ra and Dec coordinates of the quasar. The images that are less than 64 X 64 will be padded with 0. The images processed by WISE are usually 64 x 64 matrices with 4 channels, and the images processed by SDSS are usually 64 X 64 matrices with 5 channels. They are usually named as {name}-{ $z_{spec}$ }-{id}.mat or {name}-{ $z_{spec}$ }-{id}.mat. For SKYMAPPER images, we directly use the official API to crop the 64*64 images as single fits file.
+
+The preprocessed images can be accessed at \url{https://nadc.china-vo.org/res/r101446/}. 
+
+- The images (SDSS bands) in Dataset I and Dataset II are included in the SDSS.tar.bz2 file.
+- The images (SDSS and WISE bands) used in Dataset IV and Dataset VI are included in the unify.tar.bz2 file.
+- The WISE images used in Dataset V are included in the ZHANGWISE_IMAGE.tar.bz2 file, and the SKYMAPPER images of them are included in the SKYMAPPER.tar.bz2 file.

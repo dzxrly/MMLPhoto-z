@@ -10,7 +10,7 @@ from torch.utils.data import Dataset,DataLoader
 from torchvision.transforms import ToTensor
 from torch import optim
 from resModel import ResNet101
-from ImprovedVitLargerModel import vit_demo
+from ImprovedVitModel import vit_demo
 class FeedForward(nn.Module):
     def __init__(self, dim_in, dim_ff, dropout=0.1):
         super(FeedForward,self).__init__()

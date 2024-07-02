@@ -2,7 +2,7 @@ from torch import nn
 import torch
 import torch.nn as nn
 from einops import rearrange
-from res_model import ResNet101
+from resModel import ResNet101
 #1x1 Conv
 def conv_1x1_bn(inp,oup):
     return nn.Sequential(

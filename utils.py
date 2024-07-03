@@ -54,8 +54,8 @@ def CRPS_loss(y_pred,y_true):
     
     CRPS = weight * (sigma * (omiga*(2*cdfNormal-1) + 2*pdfNormal - math.pi ** (-0.5)))
     
-    #return torch.sum(CRPS,dim=1).mean()
-    return torch.sum(CRPS,dim=1,keepdim=True)
+    return torch.sum(CRPS,dim=1).mean()
+    #return torch.sum(CRPS,dim=1,keepdim=True)
 
 #mixture density network loss
 def mdn_loss(x, target):

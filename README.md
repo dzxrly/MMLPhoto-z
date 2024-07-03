@@ -39,8 +39,9 @@ You can run the code `python train.py --mode=WISE --task=ESTIMATION --modal=all`
 3. modal: photo/img/all
 
    **choose what kind of modal of the data that you choose to train the model.**
-
-4. Other training-related configurations such as weight coefficients, selection of loss functions (CRPS, cross-entropy, MSE), and specific CSV file reading can all be modified in train.py.
+4. bands: 0,1,2,3,4 corresponding to u,v,g,r,i,z bands  u,v,g,r,i,z bands   v,g,r,i,z bands  g,r,i,z bands r,i,z bands
+   **choose the bands of SkyMapper due to the lack of mag.**
+5. Other training-related configurations such as weight coefficients, selection of loss functions (CRPS, cross-entropy, MSE), and specific CSV file reading can all be modified in train.py.
 
 <!-- TOC --><a name="quick-start-of-the-structure-of-the-code"></a>
 # Quick start of the structure of the code

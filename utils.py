@@ -16,9 +16,9 @@ criterion_md = nn.CrossEntropyLoss()
 #criterion = nn.MSELoss()
 
 def PIT_calculation(y_pred,y_true):
-    mu = y_pred[:,:5] + 1e-6
-    sigma = y_pred[:,5:10] + 1e-6
-    weight = y_pred[:,10:15] + 1e-6
+    mu = y_pred[:,:5] + 1e-16
+    sigma = y_pred[:,5:10] + 1e-16
+    weight = y_pred[:,10:15] + 1e-16
 
     # normalize the weight
     weight = weight / torch.sum(weight,dim=1,keepdims=True)
@@ -32,12 +32,12 @@ def PIT_calculation(y_pred,y_true):
 
 #CRPS loss
 def CRPS_loss(y_pred,y_true):
-    mu = y_pred[:,:5] + 1e-6
-    sigma = y_pred[:,5:10] + 1e-6
-    weight = y_pred[:,10:15] + 1e-6
-    
+    mu = y_pred[:,:5] + 1e-16
+    sigma = y_pred[:,5:10] + 1e-16
+    weight = y_pred[:,10:15] + 1e-16
+
+    weight1 = weight / torch.sum(weight,dim=1,keepdims=True)
     # normalize the weight
-    weight = weight / torch.sum(weight,dim=1,keepdims=True)
 
     # Create normal distribution.
     dist = torch.distributions.normal.Normal(mu,sigma)
@@ -52,20 +52,20 @@ def CRPS_loss(y_pred,y_true):
     cdfNormal = standard_normal.cdf(omiga)
     pdfNormal = torch.exp(standard_normal.log_prob(omiga))
     
-    CRPS = weight * (sigma * (omiga*(2*cdfNormal-1) + 2*pdfNormal - math.pi ** (-0.5)))
-    
+
+    CRPS = weight1 * (sigma * (omiga*(2*cdfNormal-1) + 2*pdfNormal - math.pi ** (-0.5)))
     return torch.sum(CRPS,dim=1).mean()
     #return torch.sum(CRPS,dim=1,keepdim=True)
 
 #mixture density network loss
 def mdn_loss(x, target):
-    sigma = x[:,:5] + 1e-6
-    mu = x[:,5:] + 1e-6
+    sigma = x[:,:5] + 1e-16
+    mu = x[:,5:] + 1e-16
     m = torch.distributions.Normal(loc=mu, scale=sigma)
     loss = m.log_prob(target)
     loss = torch.exp(loss)
     loss = torch.sum(loss, dim=1)
-    loss = -torch.log(loss + 1e-6)
+    loss = -torch.log(loss + 1e-16)
     return torch.mean(loss)
 
 def quasar_contrast_loss(photo_feature, image_feature, labels, t=0.21, gamma=0.13):
@@ -80,9 +80,9 @@ def quasar_contrast_loss(photo_feature, image_feature, labels, t=0.21, gamma=0.1
     #label_sim: What is actually computed is the number of identical classes within the same batch size.
     label_sim = torch.matmul(labels, labels.T).clamp(max=1.0)
     #label_sim = label_sim ** 0.5
-    pro_inter = label_sim / label_sim.sum(1, keepdim=True).clamp(min=1e-6)
+    pro_inter = label_sim / label_sim.sum(1, keepdim=True).clamp(min=1e-16)
     label_sim_intra = (label_sim - torch.eye(label_sim.shape[0]).cuda()).clamp(min=0)
-    pro_intra = label_sim_intra / label_sim_intra.sum(1, keepdim=True).clamp(min=1e-6)
+    pro_intra = label_sim_intra / label_sim_intra.sum(1, keepdim=True).clamp(min=1e-16)
 
     # logits: NxN
     logits_photo2image = sim_photo2image - torch.log(torch.exp(1.06 * sim_photo2image).sum(1, keepdim=True))
@@ -127,7 +127,8 @@ def gan_loss(view1_modal_view1, view2_modal_view1, view1_modal_view2, view2_moda
    
     contrast_loss = quasar_contrast_loss(view1_modal_view1,view2_modal_view2,contrast_class)
     
-    return 1.5*(z1_loss)+0.3*(c1+c2+c3+c4)+0.8*contrast_loss,c1.detach(),c2.detach(),c3.detach(),c4.detach(),contrast_loss.detach(),z2_loss.detach(),z3_loss.detach(),z4_loss.detach(),z1_loss.detach()
+    return 5*(z1_loss)+0.4*(c1+c2+c3+c4)+0.3*contrast_loss,c1.detach(),c2.detach(),c3.detach(),c4.detach(),contrast_loss.detach(),z2_loss.detach(),z3_loss.detach(),z4_loss.detach(),z1_loss.detach()
+    #return 1.5*(z1_loss)+0.3*(c1+c2+c3+c4)+0.8*contrast_loss,c1.detach(),c2.detach(),c3.detach(),c4.detach(),contrast_loss.detach(),z2_loss.detach(),z3_loss.detach(),z4_loss.detach(),z1_loss.detach()
 
 def gan1_loss(view1_modal_view1, view2_modal_view1, view1_modal_view2, view2_modal_view2\
              ,label,contrast_class,z1,z2,z3,z4,criterion):
@@ -187,7 +188,7 @@ def train_one_modal(train_loader,model,regression_model,optimizer,criterion,scal
 @torch.no_grad()
 def evaluate_one_modal(test_loader,model,regression_model,criterion,modal):
     model.eval()
-    #regression_model.eval()
+    regression_model.eval()
     mean_loss = torch.zeros(1).cuda()
     test_loader = tqdm(test_loader)
     for i, (x1,x2,image,labels,con_labels) in enumerate(test_loader):
@@ -221,6 +222,7 @@ def train_one_epoch(train_loader,model,regression_model,optimizer,criterion,scal
         if contains_nan:
             print("The tensor contains NaN values.")
         
+        image=image.to(torch.float64)
         image=image.cuda()
         labels=labels.cuda()
         con_labels=con_labels.cuda()
@@ -264,7 +266,7 @@ def train_one_epoch(train_loader,model,regression_model,optimizer,criterion,scal
 
         for j in range(10):
             mean_loss[j] = (mean_loss[j] * i + loss[j].detach().item()) / (i + 1)
-        train_loader.desc = "[epoch {}] mean loss {}".format(i, round(mean_loss[0].item(), 3))
+        train_loader.desc = "[epoch {}] mean loss {}".format(i, round(mean_loss[0].item(), 10))
     
     return mean_loss
         
@@ -277,6 +279,7 @@ def evaluate(test_loader,model,regression_model,criterion):
     for i, (x1,x2,image,labels,con_labels) in enumerate(test_loader):
         x1=x1.cuda()
         x2=x2.cuda()
+        image=image.to(torch.float64)
         image=image.cuda()
         labels=labels.cuda()
         con_labels=con_labels.cuda()
@@ -291,7 +294,7 @@ def evaluate(test_loader,model,regression_model,criterion):
         loss = gan1_loss(photo2photo_judge,img2photo_judge,photo2img_judge,img2img_judge,labels,con_labels,z1,z2,z3,z4,criterion)
         for j in range(10):
             mean_loss[j] = (mean_loss[j] * i + loss[j].detach().item()) / (i + 1)
-        test_loader.desc = "[epoch {}] mean mse {}".format(i, round(mean_loss[0].item(), 3))
+        test_loader.desc = "[epoch {}] mean mse {}".format(i, round(mean_loss[0].item(), 10))
     
     return mean_loss
 
@@ -382,11 +385,35 @@ class PhotoDataset(Dataset):
         torch.full_like(image, 0), image)
         return self.x1[idx,:,:],self.x2[idx,:],image,self.y[idx],self.con_labels[idx]
 
-def split_dataset(dataset, test_size=0.2, val_size=0.2, random_state=42,split_type='test',factor=1/1000):
+# define a function to calculate the length of integer
+def num_digits(n):  
+    if n == 0:  
+        return 1  # 0有1位  
+    return len(str(abs(n)))  
+
+def split_dataset(dataset, test_size=0.2, val_size=0.2, random_state=42,split_type='test',factor=1e-9):
     # generate the index of the dataset
     idx = np.arange(len(dataset))
-    y = np.floor((dataset.y*factor))
+    # For SKYMAPPER, there are many spec-z < 1e-9
+    v_num_digits = np.vectorize(num_digits) 
+    if factor>1:
+        y = v_num_digits(np.floor((dataset.y*factor)))
+        # use numpy.unique to obtain unique value and count
+        unique_vals, counts = np.unique(y, return_counts=True)
 
+        total_count = y.size
+
+        # cal proportios of each value
+        proportions = counts / total_count
+        for val, count, prop in zip(unique_vals, counts, proportions):
+            print(f"value {val} appear {count} times，corrsponding proportion is  {prop:.2f}")
+    else:
+        y = np.floor(dataset.y*factor)
+
+    #min_val = torch.min(dataset.y)
+    #max_val = torch.max(dataset.y)
+    #dataset.y  = (dataset.y - min_val) / (max_val - min_val)
+    
     # train_test_split to split the datasets into train and test dataset
     train_idx, test_idx, y_train, y_test = train_test_split(idx, y, test_size=test_size,
                                                         random_state=random_state, stratify=y)

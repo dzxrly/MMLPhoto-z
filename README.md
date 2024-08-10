@@ -81,11 +81,11 @@ In this paper, the images will be cropped into 64 X 64 images according to the R
 
 The preprocessed images can be accessed at https://nadc.china-vo.org/res/r101446/. 
 
-- The images (SDSS bands) in Dataset I and Dataset II are included in the SDSS.tar.bz2 file.
-- The images (SDSS and WISE bands) used in Dataset IV and Dataset VI are included in the unify.tar.bz2 file.
-- The WISE images used in Dataset V are included in the ZHANGWISE_IMAGE.tar.bz2 file, and the SKYMAPPER images of them are included in the SKYMAPPER.tar.bz2 file.
+- The images (SDSS bands) in Dataset I are included in the SDSS.tar.bz2 file.
+- The images (WISE and SDSS bands) used in Dataset II and Dataset VI are included in the unify.tar.bz2 file.
+- The WISE and SKYMAPPER images used in Dataset V are included in the SkyFullImage.tar.bz2 file.
 
-The total size of the image files is 201GB.
+The total size of the image files is 202.48GB.
 
 <!-- TOC --><a name="Notice"></a>
 # Notice 

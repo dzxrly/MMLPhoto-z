@@ -69,11 +69,10 @@ You can run the code `python train.py --mode=WISE --task=ESTIMATION --modal=all`
 <!-- TOC --><a name="csv-files-enumerate"></a>
 # Csv files enumerate 
 
-- MN.csv (Dataset I in paper)
-- EXTEND.csv (Dataset II in paper)
-- YAONEW.csv (Dataset IV in paper)
-- SKYSRIZ_NEW.csv (Dataset V in paper)
-- UNIFY.csv (Quasars $0 \leq z \leq 6$ in DR16Q) Dataset VI
+- MN.csv (Dataset I in paper [Hong S, Zou Z, Luo A L, et al. PhotoRedshift-MML: A multimodal machine learning method for estimating photometric redshifts of quasars[J]. Monthly Notices of the Royal Astronomical Society, 2023, 518(4): 5049-5058.])
+- YAONEW.csv (Dataset II in paper [Yao L, Qiu B, Luo A L, et al. Photometric redshift estimation of quasars with fused features from photometric data and images[J]. Monthly Notices of the Royal Astronomical Society, 2023, 523(4): 5799-5811.])
+- SKYSRIZ_NEW.csv (WISE and SKYMAPPER DATASET) [Dataset IV in our paper]
+- UNIFY.csv (WISE and SDSS DATASET) -(Quasars $0 \leq z \leq 6$ in DR16Q) [Dataset V in our paper]  
 
 <!-- TOC --><a name="image-cropped-details-and-preprocessing"></a>
 # Image cropped details and preprocessing
@@ -87,3 +86,7 @@ The preprocessed images can be accessed at https://nadc.china-vo.org/res/r101446
 - The WISE images used in Dataset V are included in the ZHANGWISE_IMAGE.tar.bz2 file, and the SKYMAPPER images of them are included in the SKYMAPPER.tar.bz2 file.
 
 The total size of the image files is 201GB.
+
+<!-- TOC --><a name="Notice"></a>
+# Notice 
+Since there are a large number of extremely low redshift samples in the SKYMAPPER dataset, mixed double-precision training cannot be enabled when training the model to avoid loss of accuracy.

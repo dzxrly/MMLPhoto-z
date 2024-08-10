@@ -14,6 +14,7 @@ from einops import rearrange
 from torch.utils.data import Dataset,DataLoader
 from torchvision.transforms import ToTensor
 from torch import optim
+from torch import tensor
 from tqdm import tqdm
 from sklearn.model_selection import KFold, train_test_split,StratifiedKFold
 import joblib
@@ -56,8 +57,8 @@ def read_MN():
     return x1,x2,y,con_labels,extension
 
 def read_YAO():
-    #b=pd.read_csv('YAONEW.csv')
-    b=pd.read_csv('UNIFY.csv')
+    b=pd.read_csv('./Datasets/YAONEW.csv')
+    #b=pd.read_csv('UNIFY.csv')
 
     b['u-g']=b['UMAG']-b['GMAG']
     b['g-r']=b['GMAG']-b['RMAG']
@@ -78,7 +79,7 @@ def read_YAO():
     return x1,x2,y,con_labels,extension
 
 def read_SKY(task):
-    skys=pd.read_csv('SKYSRIZ_NEW.csv')
+    skys=pd.read_csv('./Datasets/SKYSRIZ_NEW.csv')
     skys['u-v']=skys['UPSF']-skys['VPSF']
     skys['v-g']=skys['VPSF']-skys['GPSF']
     skys['g-r']=skys['GPSF']-skys['RPSF']
@@ -109,7 +110,11 @@ def main(args):
     task=args.task
     band=args.bands
     modal=args.modal
+    weights_path=args.weights
     
+    #torch.set_default_dtype(torch.float64)
+    #tensor.type(torch.float64)
+
     num_epochs=200
     if mode!='SKY':
         if mode=='SDSS':
@@ -145,25 +150,32 @@ def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     transform = ToTensor()
     
-    batch_size = 1024
+    # 1024*2
+    batch_size = 256*2 + 256 + 128 + 256 + 128
     
     if mode!='SKY':    
         photoDataset=PhotoDataset(x1,x2,y,con_labels,image_path,extension,types=types)
+        trainDateset,valDataset=split_dataset(photoDataset)
     else:
+        torch.set_default_dtype(torch.float64)
         photoDataset=SkyMapperDataset(paths,x1,x2,y,extension,con_labels,types=task,bands=band)
-    
-    trainDateset,valDataset=split_dataset(photoDataset)
+        trainDateset,valDataset=split_dataset(photoDataset,factor=1e9)
 
     # load the datasets
     train_loader = DataLoaderX(trainDateset, batch_size=batch_size, shuffle=True,pin_memory=True)
     val_loader = DataLoader(valDataset, batch_size=batch_size, shuffle=True,pin_memory=True)  
     
-    
-    lrs=[0.04,8*1e-3,5*1e-3,7*1e-4,2*1e-4,8*1e-5,4*1e-5,8*1e-6,2*1e-6,8*1e-7]
+    #lrs=[0.04]
+    lrs=[0.035,8*1e-3,7*1e-4,2*1e-4,8*1e-5,4*1e-5,8*1e-6,2*1e-6,8*1e-7]
+    #lrs=[8*1e-3,7*1e-4,2*1e-4,8*1e-5,4*1e-5,8*1e-6,2*1e-6,8*1e-7]
+    #lrs=[8*1e-5,4*1e-5,8*1e-6,2*1e-6,8*1e-7]   
+    #lrs=[0.04,8*1e-3,7*1e-4,2*1e-4,8*1e-5,4*1e-5,8*1e-6,2*1e-6,8*1e-7]
+    #lrs=[5*1e-3,7*1e-4,2*1e-4,8*1e-5,4*1e-5,8*1e-6,2*1e-6,8*1e-7]
+    #lrs=[2*1e-4,8*1e-5,4*1e-5,8*1e-6,2*1e-6,8*1e-7]
 
     # Initialize the model, loss function, and optimizer.
     for idx,lr in enumerate(lrs):
-        writer = SummaryWriter('unify1/experiment_{}'.format(str(lr))) 
+        writer = SummaryWriter('SKYMAPPER/experiment_{}'.format(str(lr))) 
         if mode=='SDSS':
             if modal=='photo':
                 model = SDSSPhotoEncoder()
@@ -207,18 +219,24 @@ def main(args):
                 #criterion = nn.L1Loss()
                 criterion = CRPS_loss
         
+        if os.path.exists(weights_path):
+           weights = torch.load(weights_path)
+           model.load_state_dict(weights['A'],strict=True)
+           redshfit_regression.load_state_dict(weights['B'],strict=True)
+
+
         # choose the optimizer
         optimizer = optim.SGD([
             {'params': model.parameters()},
             {'params': redshfit_regression.parameters()}
-            ],lr=lr,weight_decay=0.005,momentum=0.6)  #0.05 0.5
+            ],lr=lr,weight_decay=0.1,momentum=0.6)  #0.05 0.5
         
         #Mix Precision To Train The Model
         scaler = torch.cuda.amp.GradScaler()
         #scheduler=lr_scheduler.CosineAnnealingLR(optimizer,T_max=20,eta_min=0.05)
         scheduler = ReduceLROnPlateau(optimizer, 'min',factor=0.05, patience=5, verbose=True)
         
-        earlyStopping = EarlyStopping('./unify1_weights/{}/'.format(str(lr)),optimizer)
+        earlyStopping = EarlyStopping('./SKYMAPPER_weights/{}/'.format(str(lr)),optimizer)
 
         #train the model
         total_step = len(train_loader)
@@ -230,16 +248,16 @@ def main(args):
             else:
                 l1=train_one_modal(train_loader,model,redshfit_regression,optimizer,criterion,scaler,modal)
             
-            if not os.path.exists('./unify1_weights/{}'.format(str(lr))):
-                os.mkdir('./unify1_weights/{}'.format(str(lr)))
+            if not os.path.exists('./SKYMAPPER_weights/{}'.format(str(lr))):
+                os.mkdir('./SKYMAPPER_weights/{}'.format(str(lr)))
 
             state={
             'A': model.state_dict(),
             'B': redshfit_regression.state_dict()
             }
 
-            torch.save(state,'./unify1_weights/{}/{}_{}.pth'.format(str(lr),str(lr),str(epoch)))
-            print('save the model ./unify1_weights/{}/{}_{}.pth'.format(str(lr),str(lr),str(epoch)))
+            torch.save(state,'./SKYMAPPER_weights/{}/{}_{}.pth'.format(str(lr),str(lr),str(epoch)))
+            print('save the model ./SKYMAPPER_weights/{}/{}_{}.pth'.format(str(lr),str(lr),str(epoch)))
             
             
             if modal=='all':
@@ -288,5 +306,6 @@ if __name__=='__main__':
     parser.add_argument('--task', type=str,default='ESTIMATION',help='choose the task of our model')
     parser.add_argument('--bands', type=int,default=0,help='choose the bands of SkyMapper due to the lack of mag')
     parser.add_argument('--modal', type=str,default='photo',help='choose the modal to train our model photo,img,all etc')
+    parser.add_argument('--weights', type=str,default='./checkpoint.pth',help='pretrained weights of the model')
     opt = parser.parse_args()
     main(opt)

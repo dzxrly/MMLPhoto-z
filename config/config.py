@@ -42,7 +42,7 @@ config = {
     "batch_size": 32,
     "num_workers": 32,
     "epochs": 1000,
-    "learn_rate": 0.001,
+    "learn_rate": 0.0001,
     "cos_annealing_t_0": 10,
     "cos_annealing_t_mult": 2,
     "cos_annealing_eta_min": 1e-12,

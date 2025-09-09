@@ -277,13 +277,13 @@ class GanLoss(nn.Module):
                 if mode == "train"
                 else z1_loss
             ),
-            c1.detach().cpu(),
-            c2.detach().cpu(),
-            c3.detach().cpu(),
-            c4.detach().cpu(),
-            contrastive_loss.detach().cpu(),
-            z1_loss.detach().cpu(),
-            z2_loss.detach().cpu(),
-            z3_loss.detach().cpu(),
-            z4_loss.detach().cpu(),
+            c1,
+            c2,
+            c3,
+            c4,
+            contrastive_loss,
+            z1_loss,
+            z2_loss,
+            z3_loss,
+            z4_loss,
         )

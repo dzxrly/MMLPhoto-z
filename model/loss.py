@@ -257,7 +257,7 @@ class GanLoss(nn.Module):
 
         c1 = self.cross_entropy_loss(mags2mags_judge, mags_md)
         c2 = self.cross_entropy_loss(img2mags_judge, img_md)
-        c3 = self.cross_entropy_loss(mags2img_judge, img_md)
+        c3 = self.cross_entropy_loss(mags2img_judge, mags_md)
         c4 = self.cross_entropy_loss(img2img_judge, img_md)
 
         z1_loss, _, _ = self.crps_loss(z1, label)

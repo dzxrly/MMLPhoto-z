@@ -2,7 +2,7 @@ config = {
     # dev mode
     "debug": False,  # pytorch lightning trainer fast_dev_run
     "wandb_project_name": "DESI_COSMOS2020_PARAMS",
-    "enable_wandb": False,  # enable wandb
+    "enable_wandb": True,  # enable wandb
     "wandb_params_search": True,
     "enable_random_seed_search": False,
     "verbose": True,

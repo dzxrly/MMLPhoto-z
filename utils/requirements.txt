@@ -1,0 +1,6 @@
+torch
+torchinfo
+pynvml
+lightning
+numpy
+rich

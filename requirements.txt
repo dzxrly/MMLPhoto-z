@@ -1,0 +1,16 @@
+torch
+torchvision
+torchaudio
+numpy
+pandas
+openpyxl
+torchinfo
+wandb
+lightning
+rich
+tqdm
+joblib
+timm
+torchmetrics
+pynvml
+tensorboard

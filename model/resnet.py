@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 
 
@@ -130,16 +129,9 @@ class ResNet(nn.Module):
         return x
 
 
-def ResNet50():
-    return ResNet([3, 4, 6, 3])
+def ResNet50(in_channels):
+    return ResNet(in_channels, [3, 4, 6, 3])
 
 
 def ResNet101(in_channels):
     return ResNet(in_channels, [3, 4, 23, 3])
-
-
-if __name__ == "__main__":
-    # model = torchvision.models.resnet50()
-    model = ResNet101()
-    a = torch.rand(3, 5, 64, 64)
-    print(model(a))

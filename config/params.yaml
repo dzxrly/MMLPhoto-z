@@ -11,6 +11,7 @@ parameters:
       - 0.001
       - 0.0005
       - 0.0001
+      - 1e-5
   cos_annealing_t_0:
     values:
       - 10
@@ -20,6 +21,7 @@ parameters:
     values:
       - 1
       - 2
+      - 3
   cos_annealing_eta_min:
     values:
       - 1e-12

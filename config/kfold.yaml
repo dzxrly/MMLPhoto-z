@@ -1,0 +1,14 @@
+name: MMLPhoto-Z交叉验证 (lp_zPDF)
+program: train.py
+method: grid
+metric:
+  goal: minimize
+  name: best_val_mae_epoch
+parameters:
+  cross_validation_fold_name:
+    values:
+      - fold_0
+      - fold_1
+      - fold_2
+      - fold_3
+      - fold_4

@@ -145,7 +145,7 @@ class BuildDataset(torch.utils.data.Dataset):
         id = data_row["TARGETID"]
         ra = data_row["TARGET_RA"]
         dec = data_row["TARGET_DEC"]
-        z = data_row["Z"]
+        z = data_row["lp_zPDF"]
         photometric_file_name = data_row["photo_name"]
         z_bin_idx = data_row["Z_bin_idx"]
         assert 0 <= z_bin_idx < self.total_z_categories, ValueError(

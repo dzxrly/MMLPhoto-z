@@ -46,4 +46,5 @@ config = {
     "cos_annealing_t_0": 10,
     "cos_annealing_t_mult": 2,
     "cos_annealing_eta_min": 1e-12,
+    "weight_decay": 1e-2,
 }

@@ -1,5 +1,6 @@
 import lightning
 import torch
+from timm import optim
 
 from model.loss import (
     GanLoss,
@@ -24,6 +25,7 @@ class BuildLightningModel(lightning.LightningModule):
         cos_annealing_t_0: int,
         cos_annealing_t_mult: int,
         cos_annealing_eta_min: float,
+        weight_decay: float,
         # photometric & mags settings
         photo_in_channel: int,
         mag_in_size: int,
@@ -58,6 +60,7 @@ class BuildLightningModel(lightning.LightningModule):
         self.cos_annealing_t_0 = cos_annealing_t_0
         self.cos_annealing_t_mult = cos_annealing_t_mult
         self.cos_annealing_eta_min = cos_annealing_eta_min
+        self.weight_decay = weight_decay
         self.estimation_loss = GanLoss(
             out_gaussian_groups=out_channel,
             temperature=0.21,
@@ -422,9 +425,10 @@ class BuildLightningModel(lightning.LightningModule):
         )
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(
+        optimizer = optim.create_optimizer_v2(
+            self.model,
             lr=self.learn_rate,
-            params=self.model.parameters(),
+            weight_decay=self.weight_decay,
             eps=self.eps,
         )
         scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(

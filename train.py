@@ -164,6 +164,7 @@ def set_model_by_config(
         cos_annealing_t_0=config["cos_annealing_t_0"],
         cos_annealing_t_mult=config["cos_annealing_t_mult"],
         cos_annealing_eta_min=config["cos_annealing_eta_min"],
+        weight_decay=config["weight_decay"],
         photo_in_channel=config["photo_in_channel"],
         mag_in_size=config["mag_in_size"],
         extractor_out_dim=config["extractor_out_dim"],
@@ -177,6 +178,7 @@ def train_with_params_search(
     cos_annealing_t_0: int,
     cos_annealing_t_mult: int,
     cos_annealing_eta_min: float,
+    weight_decay: float,
     debug: bool = False,
     cross_validation_fold_name: str = "fold_0",
 ) -> None:
@@ -186,6 +188,7 @@ def train_with_params_search(
         config["cos_annealing_t_0"] = cos_annealing_t_0
         config["cos_annealing_t_mult"] = cos_annealing_t_mult
         config["cos_annealing_eta_min"] = cos_annealing_eta_min
+        config["weight_decay"] = weight_decay
     torch.set_float32_matmul_precision("high")
     if config["verbose"]:
         print("config:", config)
@@ -217,6 +220,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--cos_annealing_eta_min", type=float, default=config["cos_annealing_eta_min"]
     )
+    parser.add_argument("--weight_decay", type=float, default=config["weight_decay"])
     parser.add_argument("--debug", "-d", action="store_true", default=False)
     args = parser.parse_args()
 
@@ -225,6 +229,7 @@ if __name__ == "__main__":
         cos_annealing_t_0=args.cos_annealing_t_0,
         cos_annealing_t_mult=args.cos_annealing_t_mult,
         cos_annealing_eta_min=args.cos_annealing_eta_min,
+        weight_decay=args.weight_decay,
         debug=args.debug,
         cross_validation_fold_name=args.cross_validation_fold_name,
     )

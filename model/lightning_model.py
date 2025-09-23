@@ -428,6 +428,7 @@ class BuildLightningModel(lightning.LightningModule):
         optimizer = optim.create_optimizer_v2(
             self.model,
             lr=self.learn_rate,
+            opt="lion",
             weight_decay=self.weight_decay,
             eps=self.eps,
         )

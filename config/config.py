@@ -24,7 +24,14 @@ config = {
     # parameters
     "photo_in_channel": 6,  # DESI g r i z + WISE W1 W2
     "photo_in_size": 64,
-    "photo_min_max": (-1.4950683, 710.1159),
+    "photo_min_max": (
+        (-1.4950683, 29.80774),
+        (-1.4950683, 29.80774),
+        (-1.4950683, 29.80774),
+        (-1.4950683, 29.80774),
+        (3.493501, 714.04065),
+        (3.493501, 714.04065),
+    ),
     "extractor_out_dim": 512,
     "mag_in_size": 5 + 4,  # mag + mag diff
     "out_gaussian_groups": 5,

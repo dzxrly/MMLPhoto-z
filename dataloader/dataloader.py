@@ -1,6 +1,5 @@
 import os
 
-import joblib
 import numpy as np
 import pandas as pd
 import torch
@@ -18,7 +17,7 @@ class BuildDataset(torch.utils.data.Dataset):
         dataset_root_dir: str,
         photometric_dir_name: str,
         label_dir_name: str,
-        photo_min_max: tuple[float, float],
+        photo_min_max: tuple[tuple[float]],
         target_photo_size: int,
         total_z_categories: int,
         load_mode: str = "train",
@@ -33,7 +32,7 @@ class BuildDataset(torch.utils.data.Dataset):
         :param dataset_root_dir: dataset root directory
         :param photometric_dir_name: photometric data directory name
         :param label_dir_name : label directory name
-        :param photo_min_max: min and max value for photometric data normalization
+        :param photo_min_max: min and max value for photometric data normalization, tuple of tuples with length equal to number of photometric channels
         :param target_photo_size: target size for photometric data, if not equal to the original size, will be resized
         :param total_z_categories: total number of redshift categories
         :param load_mode: mode to load the dataset, can be "train", "val", or "test"
@@ -76,7 +75,7 @@ class BuildDataset(torch.utils.data.Dataset):
             print("[INFO] Data augmentation is enabled.")
         self.eps = eps
         self.train = load_mode == "train"
-        self.photo_min_max = photo_min_max
+        self.photo_min_max = np.asarray(photo_min_max, dtype=np.float32)
         self.target_photo_size = target_photo_size
         self.resize_transform = Resize(
             size=target_photo_size,
@@ -92,36 +91,28 @@ class BuildDataset(torch.utils.data.Dataset):
         file_path: str,
         allow_pickle: bool = False,
         nan_to_num: bool = False,
+        min_max_normalize: bool = True,
     ) -> torch.Tensor:
-        # get file extension
-        file_extension = os.path.splitext(file_path)[-1].lower()
-        assert file_extension in [".npy", ".mat"], RuntimeError(
-            f"Unsupported file extension {file_extension}. Only .npy and .mat are supported."
-        )
-        _data = None
-        if file_extension == ".npy":
-            _data = np.load(
-                os.path.join(file_path),
-                allow_pickle=allow_pickle,
-            ).astype(np.float32)
-            if nan_to_num:
-                _data = np.nan_to_num(_data, nan=0, posinf=0, neginf=0)
-            _data = torch.tensor(_data, dtype=torch.float32)
-        elif file_extension == ".mat":
-            _data = joblib.load(
-                os.path.join(file_path),
+        _data = np.load(
+            os.path.join(file_path),
+            allow_pickle=allow_pickle,
+        ).astype(np.float32)
+        if nan_to_num:
+            _data = np.nan_to_num(_data, nan=0, posinf=0, neginf=0)
+        if min_max_normalize:
+            assert self.photo_min_max.shape[-1] == 2, RuntimeError(
+                f"photo_min_max last dimension must be 2 (e.g. min, max), got {self.photo_min_max.shape[-1]}"
             )
-            _data = torch.tensor(_data).float()
-            if nan_to_num:
-                _data = _data.nan_to_num(nan=0, posinf=0, neginf=0)
-        else:
-            raise RuntimeError(
-                f"Unsupported file extension {file_extension}. Only .npy and .mat are supported."
+            assert self.photo_min_max.ndim == 2, RuntimeError(
+                f"photo_min_max must be 2D array, got {self.photo_min_max.ndim}D array"
             )
-        # resize
-        if _data.shape[-1] != self.target_photo_size:
-            _data = self.resize_transform(_data)
-        return _data
+            assert _data.shape[0] == self.photo_min_max.shape[0], RuntimeError(
+                f"photometric channels: {_data.shape[0]} must be equal to the photo_min_max channels: {self.photo_min_max.shape[0]}"
+            )
+            min_vals = self.photo_min_max[:, 0].reshape(-1, 1, 1)
+            max_vals = self.photo_min_max[:, 1].reshape(-1, 1, 1)
+            _data = (_data - min_vals) / (max_vals - min_vals + self.eps)
+        return torch.tensor(_data, dtype=torch.float32)
 
     def _augmentation(self, photometric: torch.Tensor) -> torch.Tensor:
         device = photometric.device
@@ -160,10 +151,7 @@ class BuildDataset(torch.utils.data.Dataset):
         photometric = self._load_data(
             os.path.join(self.photometric_dir, photometric_file_name),
             nan_to_num=True,
-        )
-        # min-max normalization
-        photometric = (photometric - self.photo_min_max[0]) / (
-            self.photo_min_max[1] - self.photo_min_max[0] + self.eps
+            min_max_normalize=True,
         )
         if self.augmentation:
             photometric = self._augmentation(photometric)
